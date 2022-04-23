@@ -130,6 +130,15 @@ cad %>%
   filter(tipo.operacion != "Feria de comercialización animal")%>%
   summarise(animales=sum(as.numeric(cantidad), na.rm = TRUE))
 
+table(cad$producto)
+
+cad %>%
+  group_by(ano)%>%
+  filter(producto == "Cerda madre")%>%
+  filter(tipo.operacion != "Faenador")%>%
+  filter(tipo.operacion != "Feria de comercialización animal")%>%
+  summarise(animales=sum(as.numeric(cantidad), na.rm = TRUE))
+
 
 
 # --------------------------------------------------
