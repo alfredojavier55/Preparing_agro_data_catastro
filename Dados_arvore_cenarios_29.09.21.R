@@ -1,11 +1,7 @@
 # --------------------------------------------------
 # Dados árvore cenario
 # --------------------------------------------------
-library(epinemo)
-library(dplyr)
-library(tidyr)
-library(lubridate)
-library(scales)
+library(epinemo);library(dplyr); library(tidyr); library(lubridate); library(scales)
 #1.1.1 Cadastro 2017 ----
 # setwd("/media/alfredo/Backup/USP/Projeto fapesp/Dados/Cadastro/2017")
 setwd("~/Backup/USP/Projeto fapesp/Dados/Cadastro/2017")
@@ -19,7 +15,6 @@ length(unique(cad17$identificacion.propietario)) #103340
 sum(as.numeric(cad17$cantidad)) #1204824
 
 # 1.2.1 Cadastro 2018 ----
-setwd("/media/alfredo/Backup/USP/Projeto fapesp/Dados/Cadastro/2018")
 setwd("~/Backup/USP/Projeto fapesp/Dados/Cadastro/2018")
 
 cad18 <- read.csv(file="cad2018.csv", colClasses = "character")
@@ -30,20 +25,16 @@ length(unique(cad18$identificacion.propietario)) #123713
 sum(as.numeric(cad18$cantidad)) #1311898
 
 # 1.3.1 Cadastro 2019 ----
-setwd("/media/alfredo/Backup/USP/Projeto fapesp/Dados/Cadastro/2019/antigos/")
 setwd("~/Backup/USP/Projeto fapesp/Dados/Cadastro/2019/antigos/")
 cad19 <- read.csv(file="cad2019.csv", colClasses = "character")
 #1.3.2 Numero de predios ----
 length(unique(paste(cad19$identificacion.propietario, cad19$nombre.sitio))) #105083
-length(unique(paste(cad19$Identificacion.Propietario, cad19$Nombre.Sitio))) #105083
-length(unique(cad19$Identificación.Propietario)) #103340
 
 #1.3.3 Numero de animais no cadastro ----
 sum(as.numeric(cad19$cantidad), na.rm = TRUE) #1504601
 
 
 # 1.3.1 Cadastro 2020 ----
-setwd("/media/alfredo/Backup/USP/Projeto fapesp/Dados/Cadastro/2019/antigos/")
 setwd("~/Backup/USP/Projeto fapesp/Dados/Cadastro/2020")
 cad20 <- read.csv(file="cad2020.csv", colClasses = "character")
 colnames(cad20) <- tolower(iconv(colnames(cad20),  from = 'UTF-8', to = 'ASCII//TRANSLIT'))
@@ -72,7 +63,6 @@ sum(as.numeric(cad20$cantidad), na.rm = TRUE) #1107488
 
 
 # 1.3.1 Cadastro 2021 ----
-# setwd("/media/alfredo/Backup/USP/Projeto fapesp/Dados/Cadastro/2019/antigos/")
 setwd("~/Backup/USP/Projeto fapesp/Dados/Cadastro/2021")
 cad21 <- read.csv(file="cad2021.csv", colClasses = "character")
 colnames(cad21) <- tolower(iconv(colnames(cad21),  from = 'UTF-8', to = 'ASCII//TRANSLIT'))
@@ -82,7 +72,6 @@ length(unique(paste(cad21$identificacion.propietario, cad21$nombre.sitio))) #104
 length(unique(cad21$identificacion.propietario)) #103188
 
 # Puedo eliminar la cantidad inactivos? 
-
 cad21 %>%
   group_by(tipo.operacion)%>%
   summarise(animales=sum(as.numeric(cantidad.activos), na.rm = TRUE))
@@ -99,8 +88,6 @@ colnames(cad21)
 #1.3.3 Numero de animais no cadastro ----
 sum(as.numeric(cad21$cantidad), na.rm = TRUE) #1107488
 
-
-
 # Catastro por anos
 cad20$X <- cad20$x
 cad20$x <- NULL
@@ -116,8 +103,9 @@ cad20$ano <- "2020"
 cad21$ano <- "2021"
 
 cad <- rbind(cad17,cad18,cad19, cad20, cad21)
+cad <- rbind(cad19, cad20, cad21)
 
-
+# Número de animales
 cad %>%
   group_by(tipo.operacion)%>%
   filter(tipo.operacion != "Faenador")%>%
@@ -138,6 +126,118 @@ cad %>%
   filter(tipo.operacion != "Faenador")%>%
   filter(tipo.operacion != "Feria de comercialización animal")%>%
   summarise(animales=sum(as.numeric(cantidad), na.rm = TRUE))
+
+#número de establecimientos
+library(tidyr)
+
+cad %>%
+  group_by(tipo.operacion)%>%
+  filter(tipo.operacion != "Faenador")%>%
+  filter(tipo.operacion != "Feria de comercialización animal")%>%
+  summarise(establecimientos=length(unique(paste(identificacion.propietario, nombre.sitio))))%>%
+  spread(key = "ano", value = "establecimientos")
+
+cad %>%
+  group_by(provincia, ano)%>%
+  filter(tipo.operacion != "Faenador")%>%
+  filter(tipo.operacion != "Feria de comercialización animal")%>%
+  summarise(establecimientos=length(unique(paste(identificacion.propietario, nombre.sitio))))
+
+table(cad$producto)
+
+# Analisis Indocumentados
+cad %>%
+  group_by(tipo.operacion, ano)%>%
+  filter(identificacion.propietario == 1768105720002)%>%
+  # filter(tipo.operacion != "Faenador")%>%
+  # filter(tipo.operacion != "Feria de comercialización animal")%>%
+  summarise(establecimientos=length(unique(paste(identificacion.propietario, nombre.sitio))))%>%
+  spread(key = "ano", value = "establecimientos")
+
+cad %>%
+  group_by(tipo.operacion, ano)%>%
+  filter(identificacion.propietario == 1768105720002)%>%
+  # filter(tipo.operacion != "Faenador")%>%
+  # filter(tipo.operacion != "Feria de comercialización animal")%>%
+  summarise(animales=sum(as.numeric(cantidad)))%>%
+  spread(key = "ano", value = "animales")
+
+#Eliminación indocumentados
+cad <- cad[cad$identificacion.propietario != 1768105720002, ]
+
+
+
+
+# Establecimientos que tienen cerdas madres
+cad %>%
+  group_by(ano)%>%
+  filter(producto == "Cerda madre")%>%
+  filter(tipo.operacion != "Faenador")%>%
+  filter(tipo.operacion != "Feria de comercialización animal")%>%
+  summarise(establecimientos=length(unique(paste(identificacion.propietario, nombre.sitio))))
+
+# Obteniendo datos para satscan
+library(tidyverse)
+
+vigi2019 <- cad %>%
+  group_by(provincia, canton, parroquia) %>%
+  filter(tipo.operacion != "Faenador")%>%
+  filter(ano == 2019)%>%
+  filter(tipo.operacion != "Feria de comercialización animal")%>%
+  summarise(cantidad=length(unique(paste(identificacion.propietario, nombre.sitio))))
+
+vigi2020 <- cad %>%
+  group_by(provincia, canton, parroquia) %>%
+  filter(tipo.operacion != "Faenador")%>%
+  filter(ano == 2020)%>%
+  filter(tipo.operacion != "Feria de comercialización animal")%>%
+  summarise(cantidad=length(unique(paste(identificacion.propietario, nombre.sitio))))
+
+vigi2021 <- cad %>%
+  group_by(provincia, canton, parroquia) %>%
+  filter(tipo.operacion != "Faenador")%>%
+  filter(ano == 2021)%>%
+  filter(tipo.operacion != "Feria de comercialización animal")%>%
+  summarise(cantidad=length(unique(paste(identificacion.propietario, nombre.sitio))))
+
+sum(vigi2019$cantidad)
+sum(vigi2020$cantidad)
+sum(vigi2021$cantidad)
+
+colnames(vigi) <- c("provincia", "canton", "parroquia", "cantidad")
+sum(vigi2019$cantidad, na.rm = TRUE) #7023
+
+vigi <- vigi2019
+vigi <- vigi2020
+vigi <- vigi2021
+
+# Usando o mapa para relocalizar en provincia cantón y parroquia
+source("~/Dropbox/3.UNL/Tesis/Darwin/Codigo/passthemap_guia.R") #colocar en la misma carpeta
+
+c19 <- data.frame(ec3@data$DPA_PARROQ,ec3@data$cantidad, "2019-01-01")
+colnames(c19) <- c("DPA_PARROQ","cantidad","fecha")
+
+c20 <- data.frame(ec3@data$DPA_PARROQ,ec3@data$cantidad, "2020-01-01")
+colnames(c20) <- c("DPA_PARROQ","cantidad","fecha")
+
+c21 <- data.frame(ec3@data$DPA_PARROQ,ec3@data$cantidad, "2021-01-01")
+colnames(c21) <- c("DPA_PARROQ","cantidad","fecha")
+
+catastro <- rbind(c19,c20,c21)
+
+# Número de parroquias sin catastro 
+catastro %>%
+  group_by(fecha) %>%
+  summarise(sum(is.na(cantidad)))
+
+# Número de parroquias 
+catastro %>%
+  group_by(fecha) %>%
+  summarise(sum(cantidad, na.rm = TRUE))
+
+# Guardando catastro para satscan
+setwd("~/Dropbox/3.UNL/Tesis/Darwin/Codigo/")
+write.csv(catastro,file="pop_p.csv") #population_premises
 
 
 
