@@ -165,8 +165,8 @@ cad %>%
 #Eliminación indocumentados
 cad <- cad[cad$identificacion.propietario != 1768105720002, ]
 
-
-
+#Eliminar os nombre_sitio eliminar  #
+cad <- cad[cad$nombre.sitio != "ELIMINAR", ]
 
 # Establecimientos que tienen cerdas madres
 cad %>%
@@ -200,9 +200,9 @@ vigi2021 <- cad %>%
   filter(tipo.operacion != "Feria de comercialización animal")%>%
   summarise(cantidad=length(unique(paste(identificacion.propietario, nombre.sitio))))
 
-sum(vigi2019$cantidad)
-sum(vigi2020$cantidad)
-sum(vigi2021$cantidad)
+sum(vigi2019$cantidad) #104884
+sum(vigi2020$cantidad) #104570
+sum(vigi2021$cantidad) #144352
 
 colnames(vigi) <- c("provincia", "canton", "parroquia", "cantidad")
 sum(vigi2019$cantidad, na.rm = TRUE) #7023
@@ -229,6 +229,9 @@ catastro <- rbind(c19,c20,c21)
 catastro %>%
   group_by(fecha) %>%
   summarise(sum(is.na(cantidad)))
+#103
+#89
+#92
 
 # Número de parroquias 
 catastro %>%
